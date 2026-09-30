@@ -27,14 +27,14 @@ Helpo joins the teams around the **actions**, and leaves the **story** with her.
 - A private case file only she can open, until she chooses to hand it to someone.
 - Helpo itself is the witness in the middle. It checks who she is, appends what happened, and cannot read the file it is witnessing.
 
-The impact is the completed loop. A deadline moves. A day is marked medical leave under the rule GNITS already has. A chair exists in Admin-Gr22 without a forced conversation. A real helpline is one tap away. The next person she trusts can receive the summary so she does not have to start the story again. The rant is not in the faculty inbox and not in the college database.
+The impact is the completed loop. A deadline moves. A day is marked medical leave under the rule GNITS already has. A chair exists in the counselling centre without a forced conversation. A real helpline is one tap away. The next person she trusts can receive the summary so she does not have to start the story again. The rant is not in the faculty inbox and not in the college database.
 
 ## The product in one pass
 
 Four doors, inside a session, with a sealed case file the student owns.
 
 1. **Extension.** Anonymous note to the faculty who owns the deadline. Up to 3 a semester. The name stays sealed until the faculty grants it, because only then do they need it to actually move the date.
-2. **Mental health day.** Up to 3 a semester. A screen-free day at the Student Counselling Centre, Room Admin-Gr22. Attendance is marked as medical leave. The student does not have to speak to the counsellor. Interviews, exams, and other dates that cannot move are blocked on the timetable.
+2. **Mental health day.** Up to 3 a semester. Take a mental health day — no questions asked. Attendance is marked as medical leave. The student does not have to speak to the counsellor. Interviews, exams, and other dates that cannot move are blocked on the timetable.
 3. **Professional help.** Tele-MANAS and the campus centre, as phone calls to people. Not another chat.
 4. **Crashout.** Text or voice, including a native language. The model helps the student slow down and hands them a summary fit to paste into an extension note or keep in the case file. It does not tell them what to do about the situation.
 
@@ -44,7 +44,7 @@ A first-run tutorial walks the four doors. It can be replayed from the side rail
 
 Sample student, built to be walked in the pitch. CSE, II year, GNITS. Not a real person. The week around her is shaped like a real GNITS week.
 
-**Where she is on Wednesday night.** Operating Systems assignment is due Thursday, 11:59pm. She has not started. Something at home has taken the last four days. Her attendance in the course is 76%. An unmarked absence drops her under the 75% line and toward condonation. Friday is a placement pre-assessment, which cannot move. Monday is a mid-term, which cannot move. She can imagine the email to her faculty and she will not send it. She can imagine explaining herself at Admin-Gr22 and she will not walk in. She opens Helpo instead.
+**Where she is on Wednesday night.** Operating Systems assignment is due Thursday, 11:59pm. She has not started. Something at home has taken the last four days. Her attendance in the course is 76%. An unmarked absence drops her under the 75% line and toward condonation. Friday is a placement pre-assessment, which cannot move. Monday is a mid-term, which cannot move. She can imagine the email to her faculty and she will not send it. She can imagine explaining herself at the counselling centre and she will not walk in. She opens Helpo instead.
 
 The pitch follows her. At each step the room sees her screen, then the faculty screen, then the counselling screen. The point of the cuts is the shared view: each team’s screen updates because she acted, and none of them received the rant.
 
@@ -78,9 +78,9 @@ Thursday morning the faculty reads the letter and grants Monday, 11:59pm. The na
 
 ### 5. She takes Thursday in the room, without a conversation
 
-The assignment can wait until Monday. She still cannot sit in class today. She opens Mental health day. Friday is marked blocked: placement pre-assessment. Monday is marked blocked: mid-term. Thursday is open. She books Admin-Gr22. The screen says the counsellor is in the room and talking is her choice. No reason is asked.
+The assignment can wait until Monday. She still cannot sit in class today. She opens Mental health day. Friday is marked blocked: placement pre-assessment. Monday is marked blocked: mid-term. Thursday is open. She books a mental health day. The screen says talking to someone is her choice. No reason is asked.
 
-**Counselling board.** Ananya Rao · Thursday · Admin-Gr22 · conversation optional · attestation pending. The centre needs her name to hold the chair and to mark attendance. It does not need the home situation, and it does not get it.
+**Counselling board.** Ananya Rao · Thursday · the counselling centre · conversation optional · attestation pending. The centre needs her name to hold the chair and to mark attendance. It does not need the home situation, and it does not get it.
 
 **Faculty view of the same fact.** Thursday is medical leave. They mark her present under that head. They do not see why. Her absence stops being an unmarked hole under the 75% rule. The College Academic Committee still condones shortage through its own process. Helpo gives her the attested record that process already asks for.
 
@@ -107,7 +107,7 @@ At the end of Ananya’s Thursday, one case, four different screens. This is the
 | OS request, Thursday to Monday | Yes | Yes, unnamed until grant | No | Event appended |
 | Name and roll number | Hers | Released by the grant | On the room booking, because the room and the register need it | Not a piece of content |
 | Monday deadline | Yes | Yes, so they can record it | Status only: deadline moved | Event appended |
-| Thursday, Admin-Gr22 | Booked, conversation optional | No | Yes | Event appended |
+| Thursday, the counselling centre | Booked, conversation optional | No | Yes | Event appended |
 | Attendance | Medical leave | Medical leave, no reason | Attested | Event appended |
 | Call to Tele-MANAS | Her choice | No | No | No |
 
@@ -142,7 +142,7 @@ flowchart TB
 
   subgraph teams [Support teams]
     Faculty[Course faculty]
-    Centre[Counselling centre Admin-Gr22]
+    Centre[Counselling centre]
     Line[Tele-MANAS 14416 and 112]
   end
 
@@ -185,7 +185,7 @@ sequenceDiagram
   Faculty->>Ledger: Grant and new deadline
   Ledger->>Faculty: Name, so the deadline can be recorded
   Ledger->>Centre: Status only, deadline moved
-  Student->>Ledger: Book Thursday at Admin-Gr22
+  Student->>Ledger: Book mental health day · Thursday
   Ledger->>Centre: Name, room, conversation optional
   Ledger->>Faculty: Thursday is medical leave, no reason
   Centre->>Ledger: Attest attendance
@@ -218,13 +218,13 @@ Cloud speech and the live model process a request in order to answer it. Our ser
 - Caps are visible and plain. 3 extensions, 3 mental health days. No streak, no guilt, no “you still have credits, use them.”
 - Professional care is a phone number and a room. The model is not a counsellor and is not styled as one.
 - AI is in one place, for one job: the student cannot write the letter yet. The model writes the letter and helps them settle. It is absent from extensions, the day booking, and the hotline.
-- Demo data looks like a GNITS week. Departments, a timetable, Admin-Gr22, the 75% attendance rule. Sample names are obviously sample names.
+- Demo data looks like a GNITS week. Departments, a timetable, the counselling centre, the 75% attendance rule. Sample names are obviously sample names.
 
 ## Campus facts the product uses
 
 Taken from GNITS’s own pages and academic regulations. Used as the world of the app, not as a claim that the college has already adopted Helpo.
 
-- Student Counselling Centre, Room **Admin-Gr22**. The published counselling page also describes appointments through the student portal and walk-in hours. Helpo is a proposed door into that room, not a replacement for the counsellor on staff.
+- Student Counselling Centre on campus. Helpo is a proposed door to take a mental health day, not a replacement for counsellors on staff.
 - End-semester eligibility needs **75% attendance**. The College Academic Committee can condone a shortage of up to **10%** (down to 65%) on genuine grounds, including medical, against a representation and evidence. A mental health day in Helpo produces an attested medical-leave record for that process. The app does not silently rewrite the regulation or promise the committee will condone.
 - National line: **Tele-MANAS, 14416** (also 1800-891-4416). Free, 24×7, many Indian languages. If someone is in immediate physical danger, **112**.
 
@@ -235,7 +235,7 @@ Sample accounts (not real students or staff):
 | Student | Ananya Rao, CSE, II year | The main walkthrough |
 | Student | A second student | So the faculty inbox is not a single card |
 | Faculty | Course faculty for OS and for a lab | Extension inbox and the reveal |
-| Counsellor | Counselling centre desk | The day’s board at Admin-Gr22 |
+| Counsellor | Counselling centre desk | The day’s board at the counselling centre |
 
 ## Information architecture
 
@@ -255,7 +255,7 @@ Helpo
 │   ├── Inbox           unnamed requests
 │   └── Request         read, grant or decline, then the name
 └── Counsellor
-    ├── Today           Admin-Gr22 board, conversation optional
+    ├── Today           the counselling centre board, conversation optional
     └── Attest          mark the day as medical leave
 ```
 
@@ -286,7 +286,7 @@ One screen, no dashboard widgets.
 A line with the semester and what remains: **Extensions 2 of 3 · Mental health days 3 of 3.** Then the four doors, each with a single sentence:
 
 - Ask for time, without your name.
-- Take a day in Admin-Gr22.
+- Take a mental health day.
 - Talk to a person whose job this is.
 - Say it here first. Leave with something you can send.
 
@@ -315,14 +315,14 @@ The tutorial is offered once, as a quiet prompt, not a modal that covers the pro
 **Student**
 
 1. A week calendar. Days that cannot be booked are marked and named: mid exam, placement interview, a review marked non-reschedulable. The student sees why, not a greyed square.
-2. Choosing an open day shows Admin-Gr22, the hours, and one sentence: you can sit the day without a session. A counsellor is in the room. Talking is the student’s choice.
+2. Choosing an open day shows the counselling centre, the hours, and one sentence: you can sit the day without a session. A counsellor is in the room. Talking is the student’s choice.
 3. Confirming books it. Attendance for that date is requested as medical leave. The student gets a plain confirmation: date, room, “conversation optional,” and the allowance dropping from 3 to 2.
 4. The same fourth-use refusal as extensions.
 5. The booking does not ask for a reason. There is no symptom form.
 
 **Counsellor**
 
-1. Today at Admin-Gr22: who has booked, the slot, and the flag **Conversation optional**. The board does not show a diagnosis, a rant, or the case file.
+1. Today at the counselling centre: who has booked, the slot, and the flag **Conversation optional**. The board does not show a diagnosis, a rant, or the case file.
 2. The counsellor attests the day. That writes the medical-leave mark the student can carry toward the existing condonation rule. The screen names that rule in a footnote, so the demo does not overclaim.
 3. If the student later chooses **Hand over case file**, the counsellor can open what the student released. Until then the row is only the booking.
 
@@ -332,7 +332,7 @@ A single calm page.
 
 - **Tele-MANAS · 14416.** Free, 24×7, call in your language. Button is a `tel:` link.
 - **If you are in immediate danger · 112.**
-- **On campus · Admin-Gr22.** Hours, and the mental-health-day door if they want the room without a call.
+- **On campus · the counselling centre.** Hours, and the mental-health-day door if they want the room without a call.
 
 No chatbot on this page. No “tell me more so I can route you.” The crashout model, if it hears language of immediate danger, stops the letter and opens this page’s content first.
 

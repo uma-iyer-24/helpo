@@ -1,48 +1,69 @@
 "use client";
 
-import { ANANYA, courseById, formatDate } from "@/lib/campus";
+import Link from "next/link";
+import { courseById, formatDate, formatWhen, person } from "@/lib/campus";
+import { counsellorQueue } from "@/lib/extensions";
 import { useHelpo } from "@/lib/store";
 import { Page } from "@/components/ui";
 
 export default function CounsellorPage() {
   const { state, attestDay } = useHelpo();
-  const moved = state.extensions.filter((item) => item.studentId === "ananya" && item.status === "granted");
+  const extensionInbox = state.extensions.filter((item) => counsellorQueue(item.status) || item.status === "pending_faculty" || item.status === "recorded");
 
   return (
     <Page
-      kicker="Admin-Gr22"
+      kicker="Counselling centre"
       title="Today at the centre."
-      lede="You see who has the room, and that conversation is optional. You do not see why, and you do not see an extension letter unless she hands you the file."
+      lede="Anonymous extension requests come here first. You approve or decline. Faculty only record what you approved."
     >
-      {moved.length > 0 && (
-        <div className="stack" style={{ marginBottom: 18 }}>
-          {moved.map((item) => (
-            <p className="card" key={item.id} style={{ margin: 0 }}>
-              {courseById(item.courseId).name} deadline moved to {formatDate(item.grantedUntil ?? item.askUntil)}. The letter was not shared.
-            </p>
-          ))}
-        </div>
-      )}
+      <section>
+        <p className="kicker">Anonymous extensions</p>
+        {extensionInbox.length === 0 ? (
+          <p className="note">No extension requests.</p>
+        ) : (
+          <div className="inbox">
+            {extensionInbox.map((item) => {
+              const course = courseById(item.courseId);
+              return (
+                <Link className="card row-link" href={`/counsellor/extension/${item.id}`} key={item.id}>
+                  <div className="row">
+                    <h2>{course.name} · {course.work}</h2>
+                    <span className="muted">
+                      {item.status === "pending_counsellor" ? "Awaiting you" : item.status === "pending_faculty" ? "With faculty" : item.status}
+                    </span>
+                  </div>
+                  <p style={{ margin: 0 }}>
+                    {formatDate(course.due)} → {formatDate(item.grantedUntil ?? item.askUntil)} · name sealed
+                  </p>
+                  <p className="muted" style={{ margin: 0 }}>{formatWhen(item.createdAt)}</p>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </section>
 
-      {state.bookings.length === 0 ? (
-        <p className="note">No mental health day is booked.</p>
-      ) : (
-        <div className="stack">
-          {state.bookings.map((item) => (
-            <article className="card" key={item.id}>
-              <div className="row">
-                <h2>{ANANYA.name}</h2>
-                <span className="muted">{item.status === "attested" ? "Attested" : "Attestation pending"}</span>
-              </div>
-              <p style={{ margin: 0 }}>{formatDate(item.date)} · Admin-Gr22 · conversation optional</p>
-              <p className="note">No reason was asked, and none is shown. Attesting writes medical leave. The College Academic Committee still condones shortage through its own process.</p>
-              {item.status === "booked" && (
-                <button className="btn primary" type="button" onClick={() => attestDay(item.id)}>Attest medical leave</button>
-              )}
-            </article>
-          ))}
-        </div>
-      )}
+      <section style={{ marginTop: 32 }}>
+        <p className="kicker">Mental health days</p>
+        {state.bookings.length === 0 ? (
+          <p className="note">No mental health day is booked.</p>
+        ) : (
+          <div className="stack">
+            {state.bookings.map((item) => (
+              <article className="card" key={item.id}>
+                <div className="row">
+                  <h2>{person(item.studentId).name}</h2>
+                  <span className="muted">{item.status === "attested" ? "Attested" : "Attestation pending"}</span>
+                </div>
+                <p style={{ margin: 0 }}>{formatDate(item.date)} · mental health day · conversation optional</p>
+                {item.status === "booked" && (
+                  <button className="btn primary" type="button" onClick={() => attestDay(item.id)}>Attest medical leave</button>
+                )}
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
 
       <section style={{ marginTop: 28 }}>
         <p className="kicker">Case file</p>
@@ -53,10 +74,10 @@ export default function CounsellorPage() {
                 <p className="letter">{item.text}</p>
               </article>
             ))}
-            {state.summaries.length === 0 && <p className="note">She handed the file over. No summary was attached.</p>}
+            {state.summaries.length === 0 && <p className="note">Handed over. No summary attached.</p>}
           </div>
         ) : (
-          <p className="note">Sealed. Identity can be checked for a booking. The body is not readable unless Ananya hands it over.</p>
+          <p className="note">Sealed until the student hands it over.</p>
         )}
       </section>
     </Page>

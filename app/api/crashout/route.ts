@@ -2,7 +2,7 @@ import { ModelError, gemini, parseJson } from "@/lib/gemini";
 
 export const maxDuration = 60;
 
-const SYSTEM = `You are Crashout, inside Helpo, for one GNITS student.
+const SYSTEM = `You are Crashout bot, inside Helpo, for one GNITS student.
 
 You do two things only.
 1. Regulation: 2 to 4 short sentences that help her settle her body. Concrete actions: breathing, feet on the floor, water, step away from the screen. No lecture. If she spoke Telugu, Hindi, or a mix, write the regulation in that language. If she spoke English, write English.
@@ -12,7 +12,7 @@ Never advise on the situation. Never say whether she should request an extension
 
 If she asks what she should do, say that decision belongs with her, her faculty, or the counselling centre. Still give regulation and a factual summary of what she already said.
 
-If the message suggests immediate danger to her or someone else, set crisis to true. Regulation is then one grounding line and the instruction to call Tele-MANAS on 14416, or 112 if she is in immediate physical danger. Set summary to an empty string.
+If the message suggests immediate danger to her or someone else, set crisis to true. Regulation is then one grounding line and the instruction to call Ms. Counsellor on campus (Ph: XXXXXXXX), or 112 if she is in immediate physical danger. Set summary to an empty string.
 
 Reply with JSON only:
 {"regulation":"...","summary":"...","crisis":false,"regulationLanguage":"en"}
@@ -27,7 +27,7 @@ export async function POST(request: Request) {
 
   if (CRISIS.test(text)) {
     return Response.json({
-      regulation: "Put both feet on the floor and stay where you are. Call Tele-MANAS on 14416 now. If you are in immediate physical danger, call 112.",
+      regulation: "Put both feet on the floor and stay where you are. Call Ms. Counsellor now (Ph: XXXXXXXX). If you are in immediate physical danger, call 112.",
       summary: "",
       crisis: true,
       regulationLanguage: "en",

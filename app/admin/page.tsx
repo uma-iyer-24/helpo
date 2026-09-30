@@ -26,14 +26,17 @@ export default function AdminPage() {
           <span>Awaiting assignee</span>
         </div>
         <div className="stat">
-          <b>{stats.closed}</b>
-          <span>Closed without decline</span>
+          <b>{stats.active}</b>
+          <span>Active · handover or in progress</span>
         </div>
         <div className="stat">
-          <b>{stats.declined}</b>
-          <span>Declined · identity sealed</span>
+          <b>{stats.closed}</b>
+          <span>Completed</span>
         </div>
       </div>
+      <p className="muted" style={{ marginTop: -6 }}>
+        {stats.declined > 0 ? `${stats.declined} declined with identity still sealed.` : "No declined cases on the ledger."}
+      </p>
 
       <p className="note">
         Helpo witnesses events. It does not store the story. Assignees see what their job requires. Admin sees whether the system is moving, not why.
@@ -47,10 +50,11 @@ export default function AdminPage() {
             <thead>
               <tr>
                 <th>Case</th>
+                <th>Encrypted file</th>
                 <th>Type</th>
                 <th>Routed to</th>
                 <th>Status</th>
-                <th>Identity</th>
+                <th>Identity on ledger</th>
                 <th>Opened</th>
               </tr>
             </thead>
@@ -60,6 +64,7 @@ export default function AdminPage() {
                   <td>
                     <Link href={`/admin/${item.id}`}>{item.ref}</Link>
                   </td>
+                  <td className="mono muted">{item.fileSeal}</td>
                   <td>{item.kindLabel}</td>
                   <td>{item.routedTo}</td>
                   <td>
@@ -78,9 +83,9 @@ export default function AdminPage() {
         <p className="kicker">What admin cannot open</p>
         <ul className="plain">
           <li>Crashout sessions and audio transcripts</li>
-          <li>Extension letters and decline reasons beyond assignee channels</li>
+          <li>Extension letters (counselling assignee only until handover)</li>
           <li>Attached summaries inside the encrypted case file</li>
-          <li>Tele-MANAS or helpline calls</li>
+          <li>Counsellor phone calls</li>
         </ul>
       </section>
     </Page>

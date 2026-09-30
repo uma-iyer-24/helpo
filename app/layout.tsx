@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
-import { Instrument_Sans, Newsreader } from "next/font/google";
+import { Fraunces, Instrument_Sans, Newsreader } from "next/font/google";
 import { Shell } from "@/components/Shell";
 import { StoreProvider } from "@/lib/store";
 import "./globals.css";
 
 const sans = Instrument_Sans({ subsets: ["latin"], variable: "--font-sans" });
 const serif = Newsreader({ subsets: ["latin"], variable: "--font-serif" });
+const display = Fraunces({ subsets: ["latin"], variable: "--font-display" });
 
 export const metadata: Metadata = {
   title: "Helpo",
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${sans.variable} ${serif.variable}`}>
+    <html lang="en" className={`${sans.variable} ${serif.variable} ${display.variable}`}>
       <body>
         <StoreProvider>
           <Shell>{children}</Shell>

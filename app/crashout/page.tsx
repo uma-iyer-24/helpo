@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { CAMPUS_COUNSELLOR } from "@/lib/campus";
 import { useHelpo } from "@/lib/store";
 import { Page, Witness } from "@/components/ui";
 
@@ -163,9 +164,9 @@ export default function CrashoutPage() {
 
   return (
     <Page
-      kicker="Crashout"
-      title="Say it here first."
-      lede="Type, or speak in whatever language comes out. Helpo is not listening until you press. You leave with a letter. The rant is wiped when the session ends."
+      kicker="Crashout bot"
+      title="Feel free to crashout here."
+      lede="Collect your thoughts for the next course of action. Type or speak in whatever language comes out. Helpo is not listening until you press. The rant is wiped when the session ends."
     >
       <Witness />
       {phase !== "result" && (
@@ -213,7 +214,11 @@ export default function CrashoutPage() {
             <p style={{ margin: 0 }}>{result.regulation}</p>
             <div className="actions">
               {!result.crisis && <button className="btn ghost" type="button" onClick={hear}>Hear this</button>}
-              {result.crisis && <a className="btn primary" href="tel:14416">Call 14416</a>}
+              {result.crisis && (
+                <a className="btn primary" href={CAMPUS_COUNSELLOR.tel}>
+                  Call {CAMPUS_COUNSELLOR.name}
+                </a>
+              )}
             </div>
           </article>
           {result.crisis && !showSummary && (

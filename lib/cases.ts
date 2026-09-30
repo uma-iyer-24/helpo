@@ -1,11 +1,13 @@
 import { courseById, formatWhen } from "./campus";
-import type { State } from "./types";
+import type { ExtensionStatus, State } from "./types";
 
 export type AdminCaseKind = "extension" | "mental_health_day" | "handover";
 
 export type AdminCase = {
   id: string;
   ref: string;
+  /** Opaque handle for the student-owned encrypted file. Not a roll number or name. */
+  fileSeal: string;
   kind: AdminCaseKind;
   kindLabel: string;
   routedTo: string;
@@ -17,15 +19,46 @@ export type AdminCase = {
   witnessLines: { at: string; text: string }[];
 };
 
+function fileSeal(studentKey: string) {
+  let hash = 0;
+  for (let i = 0; i < studentKey.length; i += 1) {
+    hash = (hash * 31 + studentKey.charCodeAt(i)) >>> 0;
+  }
+  return `HLP-SEAL-${(hash % 0xffff).toString(16).toUpperCase().padStart(4, "0")}`;
+}
+
 function refFromId(prefix: string, id: string) {
   const tail = id.replace(/[^a-z0-9]/gi, "").slice(-6).toUpperCase() || "000000";
   return `HLP-${prefix}-${tail}`;
 }
 
-function extensionStatus(status: "pending" | "granted" | "declined") {
-  if (status === "pending") return { label: "Awaiting faculty decision", key: "pending" as const };
-  if (status === "granted") return { label: "Granted · identity released to assignee only", key: "closed" as const };
-  return { label: "Declined · identity stayed sealed", key: "declined" as const };
+function extensionStatus(status: ExtensionStatus) {
+  switch (status) {
+    case "pending_counsellor":
+      return {
+        label: "Awaiting counselling · anonymous",
+        key: "pending" as const,
+        routedTo: (course: string) => `Counselling centre · ${course}`,
+      };
+    case "pending_faculty":
+      return {
+        label: "Approved · faculty must record",
+        key: "active" as const,
+        routedTo: (course: string) => `Course faculty · ${course} · mandated`,
+      };
+    case "recorded":
+      return {
+        label: "Recorded · identity released to faculty only",
+        key: "closed" as const,
+        routedTo: (course: string) => `Course faculty · ${course}`,
+      };
+    case "declined":
+      return {
+        label: "Not approved · identity stayed sealed",
+        key: "declined" as const,
+        routedTo: (course: string) => `Counselling centre · ${course}`,
+      };
+  }
 }
 
 function linesFor(state: State, match: (text: string) => boolean) {
@@ -37,19 +70,18 @@ export function adminCases(state: State): AdminCase[] {
   const rows: AdminCase[] = state.extensions.map((item) => {
     const course = courseById(item.courseId);
     const st = extensionStatus(item.status);
-    const updated =
-      item.status === "granted" || item.status === "declined" ? item.createdAt : item.createdAt;
     return {
       id: item.id,
       ref: refFromId("EXT", item.id),
+      fileSeal: fileSeal(item.studentId),
       kind: "extension",
       kindLabel: `Anonymous extension · ${course.name}`,
-      routedTo: `Course faculty · ${course.name}`,
+      routedTo: st.routedTo(course.name),
       status: st.label,
       statusKey: st.key,
       sealLabel: item.nameReleased ? "Released to assignee only" : "Student identity sealed",
       openedAt: item.createdAt,
-      updatedAt: updated,
+      updatedAt: item.createdAt,
       witnessLines: linesFor(
         state,
         (text) => text.includes("Extension") && (text.includes(course.name) || text.includes(item.id)),
@@ -65,9 +97,10 @@ export function adminCases(state: State): AdminCase[] {
     rows.push({
       id: item.id,
       ref: refFromId("MHD", item.id),
+      fileSeal: fileSeal(item.studentId),
       kind: "mental_health_day",
-      kindLabel: "Mental health day · Admin-Gr22",
-      routedTo: "Counselling centre · Admin-Gr22",
+      kindLabel: "Mental health day",
+      routedTo: "Counselling centre",
       status: st.label,
       statusKey: st.key,
       sealLabel: "Identity held by counselling centre for room and attendance only",
@@ -82,9 +115,10 @@ export function adminCases(state: State): AdminCase[] {
     rows.push({
       id: "handover",
       ref: refFromId("FIL", "handover"),
+      fileSeal: fileSeal("ananya"),
       kind: "handover",
       kindLabel: "Encrypted case file · student-initiated handover",
-      routedTo: "Counselling centre · Admin-Gr22",
+      routedTo: "Counselling centre",
       status: state.summaries.length > 0 ? "Received · decryptable by assignee only" : "Received · no summary attached",
       statusKey: "active",
       sealLabel: "Body encrypted · not readable by Helpo or college admin",

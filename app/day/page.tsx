@@ -17,14 +17,14 @@ export default function DayPage() {
     const result = bookDay(chosen.date);
     if (result === "cap") setMessage("You have used 3 of 3 mental health days this semester.");
     else if (result === "booked") setMessage(`${formatDate(chosen.date)} is already booked.`);
-    else setMessage(`${formatDate(chosen.date)} is yours at Admin-Gr22. Conversation optional. Attendance will be marked as medical leave once the centre attests it.`);
+    else setMessage(`${formatDate(chosen.date)} is booked as your mental health day. Conversation optional. Attendance will be marked as medical leave once the centre attests it.`);
   }
 
   return (
     <Page
       kicker="Mental health day"
-      title="A day in the room. No explanation."
-      lede="Admin-Gr22 holds the day. A counsellor is there. Talking is your choice. Interviews, exams, and closed days cannot be booked."
+      title="Take a mental health day."
+      lede="No explanation required. Talking to someone is your choice. Interviews, exams, and closed days cannot be booked."
     >
       <Witness />
       <p className="note">
@@ -62,7 +62,7 @@ export default function DayPage() {
                   <h2>{formatDate(item.date)}</h2>
                   <span className="muted">{item.status === "attested" ? "Medical leave attested" : "Waiting for attestation"}</span>
                 </div>
-                <p className="muted" style={{ margin: 0 }}>Admin-Gr22 · conversation optional</p>
+                <p className="muted" style={{ margin: 0 }}>Mental health day · conversation optional</p>
               </article>
             ))}
           </div>

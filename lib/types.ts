@@ -1,12 +1,22 @@
+import type { DemoStudentId } from "./demo-students";
+import { SEED_BOOKINGS, SEED_EXTENSIONS, SEED_LEDGER } from "./seed";
+
 export type Role = "student" | "faculty" | "counsellor" | "admin";
+
+export type ExtensionStatus =
+  | "pending_counsellor"
+  | "declined"
+  | "pending_faculty"
+  | "recorded";
 
 export type Extension = {
   id: string;
-  studentId: "ananya" | "sana";
+  studentId: DemoStudentId;
   courseId: "os" | "cn";
   letter: string;
   askUntil: string;
-  status: "pending" | "granted" | "declined";
+  status: ExtensionStatus;
+  /** New deadline set when the counsellor approves. */
   grantedUntil?: string;
   declineNote?: string;
   nameReleased: boolean;
@@ -15,7 +25,7 @@ export type Extension = {
 
 export type Booking = {
   id: string;
-  studentId: "ananya";
+  studentId: DemoStudentId;
   date: string;
   status: "booked" | "attested";
   createdAt: string;
@@ -48,21 +58,9 @@ export function freshState(): State {
     role: "student",
     tutorialSeen: false,
     handedOver: false,
-    bookings: [],
+    bookings: [...SEED_BOOKINGS],
     summaries: [],
-    ledger: [],
-    extensions: [
-      {
-        id: "ext-sana",
-        studentId: "sana",
-        courseId: "cn",
-        letter:
-          "I am requesting that the Computer Networks lab record, due Friday, move to Tuesday. I was unwell earlier this week and could not complete the observations. I can submit the record on Tuesday. I am not asking to move any exam.",
-        askUntil: "2026-10-06",
-        status: "pending",
-        nameReleased: false,
-        createdAt: "2026-09-30T09:10:00+05:30",
-      },
-    ],
+    ledger: [...SEED_LEDGER],
+    extensions: [...SEED_EXTENSIONS],
   };
 }

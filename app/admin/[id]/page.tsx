@@ -33,10 +33,11 @@ export default function AdminCasePage() {
         </article>
 
         <article className="card">
-          <p className="kicker">Identity and file</p>
+          <p className="kicker">Encrypted case file</p>
+          <p className="mono" style={{ margin: "0 0 8px" }}>{item.fileSeal}</p>
           <p style={{ margin: 0 }}>{item.sealLabel}</p>
           <p className="note" style={{ margin: "10px 0 0" }}>
-            The encrypted case file lives with the student. Helpo verified identity when the session opened and appended this exchange. No case body is stored in admin view.
+            Narrative, letters, and crashout text live in ciphertext on the student device. Helpo verified the file seal when the session opened and appended this exchange. College admin cannot decrypt.
           </p>
         </article>
 
@@ -44,7 +45,7 @@ export default function AdminCasePage() {
           <p className="kicker">Assignee view</p>
           {item.kind === "extension" && (
             <p style={{ margin: 0 }}>
-              Course faculty see the course, the request text, and the name only after a grant. They never see crashout or prior case history.
+              Counselling sees the anonymous letter and approves or declines. Course faculty see only the approved date and must record it. They do not see the letter. Names release only at recording.
             </p>
           )}
           {item.kind === "mental_health_day" && (

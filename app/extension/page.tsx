@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { CAP, COURSES, courseById, formatDate, formatWhen } from "@/lib/campus";
+import { extensionStudentLabel } from "@/lib/extensions";
 import { useHelpo } from "@/lib/store";
 import { Page, Witness } from "@/components/ui";
 
@@ -33,7 +34,7 @@ export default function ExtensionPage() {
   function submit() {
     const result = requestExtension({ courseId, letter, askUntil });
     if (result === "cap") setError("You have used 3 of 3 extensions this semester. This one cannot be sent. The count resets next semester.");
-    else if (result === "empty") setError("Write the request, or bring in the summary from Crashout.");
+    else if (result === "empty") setError("Write the request, or bring in the summary from Crashout bot.");
     else {
       setError(null);
       setSent(true);
@@ -45,7 +46,7 @@ export default function ExtensionPage() {
     <Page
       kicker="Extension"
       title="Ask for time, without your name."
-      lede="Faculty see the course and this letter. Your name appears only if they grant it, because that is when they need it to move the date."
+      lede="Your letter goes to the counselling centre first, anonymously. If they approve, faculty are required to record the new date. Your name is released only when faculty record it."
     >
       <Witness />
       <p className="note">{remainingExtensions} of {CAP} left this semester. An exam cannot be extended here.</p>
@@ -85,10 +86,10 @@ export default function ExtensionPage() {
                 Use latest summary
               </button>
             )}
-            <button className="btn primary" type="button" onClick={submit}>Send, name sealed</button>
+            <button className="btn primary" type="button" onClick={submit}>Send to counselling, name sealed</button>
           </div>
           {error && <p className="error">{error}</p>}
-          {sent && <p>Sent. Your name is sealed until this is granted.</p>}
+          {sent && <p>Sent to counselling. Your name is sealed.</p>}
         </div>
       )}
 
@@ -105,9 +106,9 @@ export default function ExtensionPage() {
                     <span className="muted">{formatWhen(item.createdAt)}</span>
                   </div>
                   <p className="letter">{item.letter}</p>
-                  {item.status === "pending" && <p className="muted">Waiting. Your name is still sealed. Asked until {formatDate(item.askUntil)}.</p>}
-                  {item.status === "granted" && <p>Granted. Due {formatDate(item.grantedUntil ?? item.askUntil)}. Your faculty can see your name now.</p>}
-                  {item.status === "declined" && <p>Declined. Your name stayed sealed. {item.declineNote}</p>}
+                  <p className="muted">{extensionStudentLabel(item.status)}</p>
+                  {item.status === "recorded" && <p>Due {formatDate(item.grantedUntil ?? item.askUntil)}.</p>}
+                  {item.status === "declined" && <p>{item.declineNote}</p>}
                 </article>
               );
             })}

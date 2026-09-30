@@ -20,7 +20,7 @@ export default function CasePage() {
       <section style={{ marginTop: 22 }}>
         <p className="kicker">Attached summaries</p>
         {state.summaries.length === 0 ? (
-          <p className="note">Nothing attached. A crashout summary stays out of the file unless you put it here. The rant is never stored.</p>
+          <p className="note">Nothing attached. A Crashout bot summary stays out of the file unless you put it here. The rant is never stored.</p>
         ) : (
           <div className="stack">
             {state.summaries.map((item) => (
@@ -55,7 +55,7 @@ export default function CasePage() {
         </button>
         <Link className="btn ghost" href="/help">Open help instead</Link>
       </div>
-      {state.summaries.length === 0 && <p className="note">Attach a summary from Crashout before handing the file over. The centre would otherwise receive an empty story.</p>}
+      {state.summaries.length === 0 && <p className="note">Attach a summary from Crashout bot before handing the file over. The centre would otherwise receive an empty story.</p>}
     </Page>
   );
 }

@@ -9,9 +9,10 @@ import {
   type ReactNode,
 } from "react";
 import { CAP, courseById, formatDate, nowStamp } from "./campus";
+import { normalizeState } from "./normalize";
 import { freshState, type Role, type State } from "./types";
 
-const KEY = "helpo-demo-v1";
+const KEY = "helpo-demo-v2";
 
 type Store = {
   ready: boolean;
@@ -26,8 +27,9 @@ type Store = {
     letter: string;
     askUntil: string;
   }) => string | null;
-  grantExtension: (id: string, grantedUntil: string) => void;
+  approveExtension: (id: string, grantedUntil: string) => void;
   declineExtension: (id: string, note: string) => void;
+  recordExtension: (id: string) => void;
   bookDay: (date: string) => string | null;
   attestDay: (id: string) => void;
   attachSummary: (text: string) => void;
@@ -49,7 +51,7 @@ function load(): State {
     if (!raw) return base;
     const parsed = JSON.parse(raw) as Partial<State>;
     if (!Array.isArray(parsed.extensions) || !Array.isArray(parsed.ledger)) return base;
-    return { ...base, ...parsed, extensions: parsed.extensions, bookings: parsed.bookings ?? [], summaries: parsed.summaries ?? [], ledger: parsed.ledger };
+    return normalizeState(parsed, base);
   } catch {
     return base;
   }
@@ -81,7 +83,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const api = useMemo<Store>(() => {
     const usedExtensions = (s: State) => s.extensions.filter((item) => item.studentId === "ananya").length;
-    const usedDays = (s: State) => s.bookings.length;
+    const usedDays = (s: State) => s.bookings.filter((item) => item.studentId === "ananya").length;
 
     return {
       ready,
@@ -113,7 +115,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
                 courseId,
                 letter: text,
                 askUntil,
-                status: "pending",
+                status: "pending_counsellor",
                 nameReleased: false,
                 createdAt: nowStamp(),
               },
@@ -123,7 +125,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
               {
                 id: uid("led"),
                 at: nowStamp(),
-                text: `Extension requested · ${course.name} · ${formatDate(course.due)} to ${formatDate(askUntil)}`,
+                text: `Extension requested · ${course.name} · routed to counselling · ${formatDate(course.due)} to ${formatDate(askUntil)}`,
               },
               ...s.ledger,
             ],
@@ -131,23 +133,24 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         });
         return error;
       },
-      grantExtension: (id, grantedUntil) => {
+      approveExtension: (id, grantedUntil) => {
         setState((s) => {
           const target = s.extensions.find((item) => item.id === id);
-          if (!target || target.status !== "pending") return s;
+          if (!target || target.status !== "pending_counsellor") return s;
           const course = courseById(target.courseId);
+          const until = grantedUntil || target.askUntil;
           return {
             ...s,
             extensions: s.extensions.map((item) =>
               item.id === id
-                ? { ...item, status: "granted", grantedUntil, nameReleased: true }
+                ? { ...item, status: "pending_faculty", grantedUntil: until, nameReleased: false }
                 : item,
             ),
             ledger: [
               {
                 id: uid("led"),
                 at: nowStamp(),
-                text: `Extension granted · ${course.name} · name released · due ${formatDate(grantedUntil)}`,
+                text: `Extension approved by counselling · ${course.name} · forwarded to faculty · due ${formatDate(until)}`,
               },
               ...s.ledger,
             ],
@@ -157,20 +160,44 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       declineExtension: (id, note) => {
         setState((s) => {
           const target = s.extensions.find((item) => item.id === id);
-          if (!target || target.status !== "pending") return s;
+          if (!target || target.status !== "pending_counsellor") return s;
           const course = courseById(target.courseId);
           return {
             ...s,
             extensions: s.extensions.map((item) =>
               item.id === id
-                ? { ...item, status: "declined", declineNote: note.trim() || "This deadline cannot move.", nameReleased: false }
+                ? { ...item, status: "declined", declineNote: note.trim() || "This request cannot be approved.", nameReleased: false }
                 : item,
             ),
             ledger: [
               {
                 id: uid("led"),
                 at: nowStamp(),
-                text: `Extension declined · ${course.name} · name stayed sealed`,
+                text: `Extension not approved · ${course.name} · counselling · identity stayed sealed`,
+              },
+              ...s.ledger,
+            ],
+          };
+        });
+      },
+      recordExtension: (id) => {
+        setState((s) => {
+          const target = s.extensions.find((item) => item.id === id);
+          if (!target || target.status !== "pending_faculty") return s;
+          const course = courseById(target.courseId);
+          const until = target.grantedUntil ?? target.askUntil;
+          return {
+            ...s,
+            extensions: s.extensions.map((item) =>
+              item.id === id
+                ? { ...item, status: "recorded", nameReleased: true }
+                : item,
+            ),
+            ledger: [
+              {
+                id: uid("led"),
+                at: nowStamp(),
+                text: `Extension recorded by faculty · ${course.name} · mandated · name released · due ${formatDate(until)}`,
               },
               ...s.ledger,
             ],
@@ -198,7 +225,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
               {
                 id: uid("led"),
                 at: nowStamp(),
-                text: `Mental health day booked · ${formatDate(date)} · Admin-Gr22 · conversation optional`,
+                text: `Mental health day booked · ${formatDate(date)} · conversation optional`,
               },
               ...s.ledger,
             ],

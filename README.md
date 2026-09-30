@@ -2,7 +2,7 @@
 
 Prototype for GNITS. One student case, shared with faculty and the counselling centre only as far as each action requires.
 
-Demo state lives in the browser. Use **Preview as** to move between Ananya Rao, Dr. Lakshmi Nair, and the Admin-Gr22 desk. **Reset demo** returns to Wednesday night, 30 September 2026.
+Demo state lives in the browser. Use **Preview as** to move between Ananya Rao, Dr. Lakshmi Nair, the counselling centre, and **College administration** (case overview without private data). **Reset demo** returns to Wednesday night, 30 September 2026.
 
 ## Run locally
 

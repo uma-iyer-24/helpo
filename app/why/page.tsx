@@ -10,11 +10,11 @@ export default function WhyPage() {
         </section>
         <section>
           <h2>The college already cares.</h2>
-          <p>GNITS has a counselling centre in Admin-Gr22, a counsellor on staff, and proctors. The gap is not the absence of concern. The gap is a way to ask this week, without performing distress in front of the person who grades you.</p>
+          <p>GNITS has a counselling centre, staff on campus, and proctors. The gap is not the absence of concern. The gap is a way to ask this week, without performing distress in front of the person who grades you.</p>
         </section>
         <section>
           <h2>Joined-up, without a shared diary.</h2>
-          <p>Faculty own the deadline. The centre owns the room and the medical-leave mark. Tele-MANAS owns clinical care. College admin see routing and status on the ledger, not the encrypted file. Helpo connects those actions on one case. The story stays with the student until she hands it to a person.</p>
+          <p>Extensions are decided anonymously with counselling first. Faculty record what counselling approved, so bias cannot block the date. The centre owns the room and the medical-leave mark. College admin see routing on the ledger, not the encrypted file.</p>
         </section>
         <section>
           <h2>What changes by Thursday evening.</h2>
@@ -22,7 +22,7 @@ export default function WhyPage() {
         </section>
         <section>
           <h2>The model has one job.</h2>
-          <p>A student who is crashed out cannot write the email. Crashout settles her and drafts the letter, including from speech in her own language. It does not decide the situation. It does not join the teams. The ledger does.</p>
+          <p>A student who is crashed out cannot write the email. Crashout bot settles her and drafts the letter, including from speech in her own language. It does not decide the situation. It does not join the teams. The ledger does.</p>
         </section>
       </div>
     </Page>

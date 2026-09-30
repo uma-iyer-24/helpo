@@ -1,27 +1,23 @@
 export const TODAY = "2026-09-30";
 export const CAP = 3;
 
-export const ANANYA = {
-  id: "ananya",
-  name: "Ananya Rao",
-  roll: "24251A0568",
-  programme: "B.Tech CSE",
-  year: "II year",
-  attendance: 76,
-};
+import { DEMO_STUDENTS, demoStudent } from "./demo-students";
 
-export const SANA = {
-  id: "sana",
-  name: "Sana Qureshi",
-  roll: "24251A0582",
-  programme: "B.Tech CSE",
-  year: "II year",
-};
+export const ANANYA = { ...DEMO_STUDENTS.ananya, attendance: 76 };
+
+export const SANA = DEMO_STUDENTS.sana;
 
 export const FACULTY = {
   id: "lakshmi",
   name: "Dr. Lakshmi Nair",
   detail: "Operating Systems · Computer Networks",
+};
+
+/** GNITS counselling contact shown on Help and in crisis handoff. Replace phone when final. */
+export const CAMPUS_COUNSELLOR = {
+  name: "Ms. Counsellor",
+  phone: "XXXXXXXX",
+  tel: "tel:XXXXXXXX",
 };
 
 export type Course = {
@@ -64,7 +60,7 @@ export function courseById(id: string) {
 }
 
 export function person(id: string) {
-  return id === "sana" ? SANA : ANANYA;
+  return demoStudent(id);
 }
 
 export function formatDate(iso: string) {

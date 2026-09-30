@@ -2,17 +2,14 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useState } from "react";
 import { courseById, formatDate, person } from "@/lib/campus";
 import { useHelpo } from "@/lib/store";
 import { Page } from "@/components/ui";
 
 export default function FacultyRequestPage() {
   const { id } = useParams<{ id: string }>();
-  const { state, grantExtension, declineExtension } = useHelpo();
+  const { state, recordExtension } = useHelpo();
   const item = state.extensions.find((entry) => entry.id === id);
-  const [due, setDue] = useState(item?.askUntil ?? "");
-  const [note, setNote] = useState("This deadline cannot move.");
 
   if (!item) {
     return (
@@ -24,11 +21,28 @@ export default function FacultyRequestPage() {
 
   const course = courseById(item.courseId);
   const who = item.nameReleased ? person(item.studentId) : null;
+  const until = item.grantedUntil ?? item.askUntil;
 
   return (
-    <Page kicker={`${course.name} · ${course.work}`} title={item.status === "granted" ? "Granted" : item.status === "declined" ? "Declined" : "Read, then decide."}>
-      <p className="letter">{item.letter}</p>
-      <p className="muted">Asked to move {formatDate(course.due)} to {formatDate(item.askUntil)}.</p>
+    <Page
+      kicker={`${course.name} · ${course.work}`}
+      title={item.status === "recorded" ? "Recorded." : "Mandated recording."}
+      lede="Counselling approved this extension. You record the date. You do not see the student letter."
+    >
+      <article className="card">
+        <p className="kicker">Counsellor decision</p>
+        <p style={{ margin: 0 }}>
+          Move {formatDate(course.due)} to <b>{formatDate(until)}</b>.
+        </p>
+        <p className="note" style={{ margin: "10px 0 0" }}>
+          This is not a discretionary grant. Under Helpo, faculty record counsellor-approved extensions so unconscious bias cannot override student welfare.
+        </p>
+      </article>
+
+      <article className="card">
+        <p className="kicker">Student letter</p>
+        <p className="muted" style={{ margin: 0 }}>Not shown. Counselling read it anonymously. You receive the course and the approved date only.</p>
+      </article>
 
       <article className="card">
         <p className="kicker">Name</p>
@@ -36,36 +50,30 @@ export default function FacultyRequestPage() {
           <p className="reveal" style={{ margin: 0 }}>
             <b>{who.name}</b> · {who.roll}
             <br />
-            <span className="muted">You can see this because you granted the extension. You need the name to record the new date.</span>
+            <span className="muted">Released because you recorded the mandated extension.</span>
           </p>
         ) : (
           <>
             <span className="seal" aria-label="Name sealed" />
-            <p className="muted">Released only if you grant this, so the deadline can be recorded. A decline keeps the name sealed. Nothing from any earlier case is on this page.</p>
+            <p className="muted">Released when you record the deadline, so it can be entered in the register.</p>
           </>
         )}
       </article>
 
-      {item.status === "pending" && (
-        <div className="stack" style={{ marginTop: 16 }}>
-          <label>
-            New deadline
-            <input type="date" value={due} onChange={(event) => setDue(event.target.value)} />
-          </label>
-          <div className="actions">
-            <button className="btn primary" type="button" onClick={() => grantExtension(item.id, due || item.askUntil)}>Grant and reveal the name</button>
-          </div>
-          <label>
-            If you decline
-            <input type="text" value={note} onChange={(event) => setNote(event.target.value)} />
-          </label>
-          <button className="btn ghost" type="button" onClick={() => declineExtension(item.id, note)}>Decline, name stays sealed</button>
+      {item.status === "pending_faculty" && (
+        <div className="actions" style={{ marginTop: 16 }}>
+          <button className="btn primary" type="button" onClick={() => recordExtension(item.id)}>
+            Record {formatDate(until)} and release the name
+          </button>
         </div>
       )}
 
-      {item.status === "granted" && <p>Record the deadline as {formatDate(item.grantedUntil ?? item.askUntil)}.</p>}
-      {item.status === "declined" && <p>Name stayed sealed. She will see: {item.declineNote}</p>}
-      <p><Link href="/faculty">Back to inbox</Link></p>
+      {item.status === "recorded" && <p>Recorded in the course. Due {formatDate(until)}.</p>}
+      {item.status === "pending_counsellor" && <p className="note">Still with counselling. It will appear here after approval.</p>}
+
+      <p style={{ marginTop: 22 }}>
+        <Link href="/faculty">Back to inbox</Link>
+      </p>
     </Page>
   );
 }
