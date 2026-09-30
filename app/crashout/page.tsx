@@ -2,8 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { createBrowserSpeech, recordingToWav, type BrowserSpeech } from "@/lib/audio-client";
 import { CAMPUS_COUNSELLOR } from "@/lib/campus";
 import { useHelpo } from "@/lib/store";
+import { TranscribeWait } from "@/components/TranscribeWait";
 import { Page, Witness } from "@/components/ui";
 
 type Result = {
@@ -11,6 +13,8 @@ type Result = {
   summary: string;
   crisis: boolean;
   regulationLanguage: string;
+  fallback?: boolean;
+  fallbackReason?: string;
 };
 
 const LANG: Record<string, string> = { te: "te-IN", hi: "hi-IN", en: "en-IN", other: "en-IN" };
@@ -27,12 +31,17 @@ export default function CrashoutPage() {
   const [level, setLevel] = useState(0);
   const [seconds, setSeconds] = useState(0);
   const [attached, setAttached] = useState(false);
+  const [voiceMode, setVoiceMode] = useState<"browser" | "cloud" | null>(null);
   const recorder = useRef<MediaRecorder | null>(null);
+  const speech = useRef<BrowserSpeech | null>(null);
   const timer = useRef<number | null>(null);
   const meter = useRef<number | null>(null);
   const audio = useRef<AudioContext | null>(null);
 
-  useEffect(() => () => stopMeter(), []);
+  useEffect(() => () => {
+    stopMeter();
+    speech.current?.abort();
+  }, []);
 
   function stopMeter() {
     if (timer.current) window.clearInterval(timer.current);
@@ -46,6 +55,34 @@ export default function CrashoutPage() {
   async function startRecording() {
     setError(null);
     setResult(null);
+
+    const browserSpeech = createBrowserSpeech(
+      (partial) => setText(partial),
+      (final) => {
+        stopMeter();
+        speech.current = null;
+        if (final) {
+          setText(final);
+          setPhase("review");
+        } else {
+          setError("No speech was detected. Try again or type below.");
+          setPhase("idle");
+        }
+        setVoiceMode(null);
+      },
+      (message) => setError(message),
+    );
+
+    if (browserSpeech) {
+      speech.current = browserSpeech;
+      setVoiceMode("browser");
+      setSeconds(0);
+      timer.current = window.setInterval(() => setSeconds((value) => value + 1), 1000);
+      browserSpeech.start();
+      setPhase("recording");
+      return;
+    }
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const rec = new MediaRecorder(stream);
@@ -84,6 +121,7 @@ export default function CrashoutPage() {
         });
       }, 1000);
       recorder.current = rec;
+      setVoiceMode("cloud");
       rec.start();
       setPhase("recording");
     } catch {
@@ -93,23 +131,44 @@ export default function CrashoutPage() {
   }
 
   function stopRecording() {
+    if (speech.current) {
+      setPhase("transcribing");
+      speech.current.stop();
+      return;
+    }
     recorder.current?.stop();
     setPhase("transcribing");
   }
 
   async function transcribe(blob: Blob) {
     setPhase("transcribing");
-    const body = new FormData();
-    body.set("audio", blob, "rant.webm");
-    const response = await fetch("/api/transcribe", { method: "POST", body });
-    const data = (await response.json().catch(() => null)) as { text?: string; error?: string } | null;
-    if (!response.ok || !data?.text) {
-      setError(data?.error === "missing_key" ? "Transcription needs the Gemini key on the server." : "The recording could not be transcribed. You can type it instead.");
+    setVoiceMode("cloud");
+    try {
+      const wav = await recordingToWav(blob);
+      const body = new FormData();
+      body.set("audio", wav, "rant.wav");
+      const response = await fetch("/api/transcribe", { method: "POST", body });
+      const data = (await response.json().catch(() => null)) as {
+        text?: string;
+        hint?: string;
+        detail?: string;
+      } | null;
+      const transcript = data?.text?.trim();
+      if (transcript) {
+        setText(transcript);
+        setPhase("review");
+        setError(null);
+        return;
+      }
+      setError(data?.hint ?? "The recording could not be transcribed. Type what you said below.");
+      if (data?.detail && process.env.NODE_ENV === "development") {
+        console.info("transcribe detail:", data.detail);
+      }
       setPhase("idle");
-      return;
+    } catch {
+      setError("Could not convert the recording. Type what you said below.");
+      setPhase("idle");
     }
-    setText(data.text);
-    setPhase("review");
   }
 
   async function send() {
@@ -126,9 +185,7 @@ export default function CrashoutPage() {
     });
     const data = (await response.json().catch(() => null)) as (Result & { error?: string }) | null;
     if (!response.ok || !data?.regulation) {
-      setError(data?.error === "missing_key"
-        ? "The letter step is unavailable until GEMINI_API_KEY is set on the server. Your words are still only on this page."
-        : "The letter step did not respond. Your words are still in the box.");
+      setError("The letter step did not respond. Your words are still in the box.");
       setPhase(returnPhase);
       return;
     }
@@ -149,12 +206,14 @@ export default function CrashoutPage() {
 
   function finish() {
     window.speechSynthesis.cancel();
+    speech.current?.abort();
     endCrashout();
     setText("");
     setResult(null);
     setSummary("");
     setPhase("idle");
     setError(null);
+    setVoiceMode(null);
   }
 
   function useInExtension() {
@@ -179,20 +238,32 @@ export default function CrashoutPage() {
                 Speak
               </button>
             )}
-            <span className="muted">{phase === "recording" ? "Listening, because you pressed." : "Not listening until you press."}</span>
+            <span className="muted">
+              {phase === "recording"
+                ? voiceMode === "browser"
+                  ? "Listening in the browser (Chrome works best)."
+                  : "Listening — will send as WAV for transcription."
+                : "Not listening until you press."}
+            </span>
           </div>
-          {phase === "recording" && (
+          {phase === "recording" && voiceMode === "cloud" && (
             <div className="meter" aria-hidden>
               <span style={{ width: `${Math.min(100, level * 100)}%` }} />
             </div>
           )}
-          {phase === "transcribing" && <p>Transcribing what you said.</p>}
+          {phase === "transcribing" && <TranscribeWait />}
           {phase === "review" && <p className="kicker">What we heard. Fix a wrong word, then send.</p>}
           <textarea
+            className={phase === "transcribing" && !text.trim() ? "transcribing" : undefined}
             value={text}
+            readOnly={phase === "transcribing"}
             onChange={(event) => setText(event.target.value)}
-            placeholder="The version you would not send a professor."
-            disabled={phase === "recording" || phase === "transcribing" || phase === "thinking"}
+            placeholder={
+              phase === "transcribing"
+                ? "Your words will appear here in a moment…"
+                : "The version you would not send a professor."
+            }
+            disabled={phase === "recording" || phase === "thinking"}
           />
           <div className="actions">
             <button className="btn primary" type="button" onClick={send} disabled={!text.trim() || phase === "thinking" || phase === "recording"}>
@@ -209,6 +280,11 @@ export default function CrashoutPage() {
 
       {phase === "result" && result && (
         <div className="stack">
+          {result.fallback && (
+            <p className="hero-chip">
+              Drafted on-device — Gemini was unavailable. Edit the letter before you send it.
+            </p>
+          )}
           <article className={`card ${result.crisis ? "crisis" : ""}`}>
             <p className="kicker">{result.crisis ? "Stop here and call" : "To settle"}</p>
             <p style={{ margin: 0 }}>{result.regulation}</p>

@@ -1,3 +1,4 @@
+import { crashoutFallback, CRISIS_PATTERN } from "@/lib/crashout-fallback";
 import { ModelError, gemini, parseJson } from "@/lib/gemini";
 
 export const maxDuration = 60;
@@ -18,20 +19,13 @@ Reply with JSON only:
 {"regulation":"...","summary":"...","crisis":false,"regulationLanguage":"en"}
 regulationLanguage is te, hi, en, or other.`;
 
-const CRISIS = /\b(suicid|kill myself|want to die|end my life|self[-\s]?harm)\b/i;
-
 export async function POST(request: Request) {
   const body = (await request.json().catch(() => null)) as { text?: string } | null;
   const text = body?.text?.trim() ?? "";
   if (!text) return Response.json({ error: "empty" }, { status: 400 });
 
-  if (CRISIS.test(text)) {
-    return Response.json({
-      regulation: "Put both feet on the floor and stay where you are. Call Ms. Counsellor now (Ph: XXXXXXXX). If you are in immediate physical danger, call 112.",
-      summary: "",
-      crisis: true,
-      regulationLanguage: "en",
-    });
+  if (CRISIS_PATTERN.test(text)) {
+    return Response.json({ ...crashoutFallback(text), fallback: false });
   }
 
   try {
@@ -47,11 +41,16 @@ export async function POST(request: Request) {
       summary: parsed.crisis ? "" : parsed.summary ?? "",
       crisis: Boolean(parsed.crisis),
       regulationLanguage: parsed.regulationLanguage ?? "en",
+      fallback: false,
     });
   } catch (error) {
-    if (error instanceof ModelError && error.code === "missing_key") {
-      return Response.json({ error: "missing_key" }, { status: 503 });
-    }
-    return Response.json({ error: "upstream" }, { status: 502 });
+    const offline = crashoutFallback(text);
+    return Response.json({
+      ...offline,
+      fallbackReason:
+        error instanceof ModelError && error.code === "missing_key"
+          ? "missing_key"
+          : "upstream",
+    });
   }
 }

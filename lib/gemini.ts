@@ -1,4 +1,7 @@
-const MODELS = ["gemini-3.5-flash", "gemini-3.6-flash", "gemini-3.7-flash", "gemini-3.1-flash-lite"];
+const TEXT_MODELS = ["gemini-3.5-flash", "gemini-3.6-flash", "gemini-3.7-flash", "gemini-3.1-flash-lite"];
+
+/** Models tried for audio inlineData (wav/mp3/ogg). */
+export const AUDIO_MODELS = ["gemini-3.5-flash", "gemini-3.6-flash", "gemini-3.7-flash"];
 
 export class ModelError extends Error {
   constructor(public code: "missing_key" | "upstream", message?: string) {
@@ -8,12 +11,12 @@ export class ModelError extends Error {
 
 type Part = { text?: string; inlineData?: { mimeType: string; data: string } };
 
-export async function gemini(parts: Part[], system: string, temperature = 0.4) {
+async function callGemini(models: string[], parts: Part[], system: string, temperature: number) {
   const key = process.env.GEMINI_API_KEY;
   if (!key) throw new ModelError("missing_key");
 
   let last = "Gemini request failed";
-  for (const model of MODELS) {
+  for (const model of models) {
     for (let attempt = 0; attempt < 2; attempt += 1) {
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
@@ -44,11 +47,19 @@ export async function gemini(parts: Part[], system: string, temperature = 0.4) {
         await new Promise((resolve) => setTimeout(resolve, 600));
         continue;
       }
-      if (response.status === 404 || response.status === 503) break;
+      if (response.status === 404 || response.status === 503 || response.status === 429) break;
       throw new ModelError("upstream", last.slice(0, 400));
     }
   }
   throw new ModelError("upstream", last.slice(0, 400));
+}
+
+export async function gemini(parts: Part[], system: string, temperature = 0.4) {
+  return callGemini(TEXT_MODELS, parts, system, temperature);
+}
+
+export async function geminiAudio(parts: Part[], system: string) {
+  return callGemini(AUDIO_MODELS, parts, system, 0);
 }
 
 export function parseJson<T>(raw: string): T {
