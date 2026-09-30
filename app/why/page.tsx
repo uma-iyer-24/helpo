@@ -64,7 +64,7 @@ sequenceDiagram
   L->>F: Mandated record no narrative body
   F->>L: Record deadline name for register
   S->>L: Mental health day booking
-  L->>C: Name slot conversation optional
+  L->>C: Anonymous booking opaque ref conversation optional
   C->>L: Attest medical leave
   S->>C: Optional handover of case file
 `;
@@ -186,7 +186,7 @@ export default function WhyPage() {
                   <tr>
                     <td>Mental health day</td>
                     <td>Counselling centre</td>
-                    <td>Name for slot and attendance</td>
+                    <td>Sealed on centre UI; opaque case ref only</td>
                     <td>No reason collected or displayed</td>
                   </tr>
                   <tr>

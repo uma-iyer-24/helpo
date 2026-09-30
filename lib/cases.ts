@@ -1,4 +1,5 @@
 import { courseById, formatWhen } from "./campus";
+import { mentorFor } from "./mentors";
 import type { ExtensionStatus, State } from "./types";
 
 export type AdminCaseKind = "extension" | "mental_health_day" | "handover";
@@ -30,6 +31,15 @@ function fileSeal(studentKey: string) {
 function refFromId(prefix: string, id: string) {
   const tail = id.replace(/[^a-z0-9]/gi, "").slice(-6).toUpperCase() || "000000";
   return `HLP-${prefix}-${tail}`;
+}
+
+/** Opaque operational ref (does not derive from student name in booking ids). */
+export function opaqueCaseRef(prefix: string, id: string) {
+  let hash = 5381;
+  for (let i = 0; i < id.length; i += 1) {
+    hash = ((hash << 5) + hash + id.charCodeAt(i)) >>> 0;
+  }
+  return `HLP-${prefix}-${(hash % 0xffffff).toString(16).toUpperCase().padStart(6, "0")}`;
 }
 
 function extensionStatus(status: ExtensionStatus) {
@@ -76,7 +86,7 @@ export function adminCases(state: State): AdminCase[] {
       fileSeal: fileSeal(item.studentId),
       kind: "extension",
       kindLabel: `Anonymous extension · ${course.name}`,
-      routedTo: st.routedTo(course.name),
+      routedTo: `${mentorFor(item.assignedDesk).title} · ${course.name}`,
       status: st.label,
       statusKey: st.key,
       sealLabel: item.nameReleased ? "Released to assignee only" : "Student identity sealed",
@@ -96,14 +106,14 @@ export function adminCases(state: State): AdminCase[] {
         : { label: "Medical leave attested", key: "closed" as const };
     rows.push({
       id: item.id,
-      ref: refFromId("MHD", item.id),
+      ref: opaqueCaseRef("MHD", item.id),
       fileSeal: fileSeal(item.studentId),
       kind: "mental_health_day",
-      kindLabel: "Mental health day",
+      kindLabel: "Mental health day · anonymous on centre screen",
       routedTo: "Counselling centre",
       status: st.label,
       statusKey: st.key,
-      sealLabel: "Identity held by counselling centre for room and attendance only",
+      sealLabel: "Student identity sealed on shared counselling view",
       openedAt: item.createdAt,
       updatedAt: item.createdAt,
       witnessLines: linesFor(state, (text) => text.includes("Mental health") || text.includes("Medical leave")).slice(0, 8),

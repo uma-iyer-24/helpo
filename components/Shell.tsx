@@ -8,14 +8,15 @@ import { Ambient } from "@/components/Ambient";
 import { BootLoader } from "@/components/BootLoader";
 import { PageTransition } from "@/components/PageTransition";
 import { ANANYA, CAP, FACULTY } from "@/lib/campus";
+import { mentorFor } from "@/lib/mentors";
 import { useHelpo } from "@/lib/store";
-import type { Role } from "@/lib/types";
+import type { ExtensionMatter, Role } from "@/lib/types";
 
 const STUDENT_ONLY = ["/", "/extension", "/day", "/help", "/crashout", "/case"];
 const STAFF_PREFIXES = ["/faculty", "/counsellor", "/admin"];
 
 export function Shell({ children }: { children: React.ReactNode }) {
-  const { ready, state, remainingExtensions, remainingDays, setRole, replayTutorial, reset } = useHelpo();
+  const { ready, state, remainingExtensions, remainingDays, setRole, setCounsellorDesk, replayTutorial, reset } = useHelpo();
   const path = usePathname();
   const router = useRouter();
 
@@ -45,7 +46,10 @@ export function Shell({ children }: { children: React.ReactNode }) {
         ? { name: FACULTY.name, detail: FACULTY.detail }
         : state.role === "admin"
           ? { name: "College administration", detail: "Student welfare · trust ledger" }
-          : { name: "Counselling centre", detail: "Mental health days" };
+          : (() => {
+              const m = mentorFor(state.counsellorDesk);
+              return { name: m.name, detail: m.title };
+            })();
 
   const home =
     state.role === "faculty" ? "/faculty" : state.role === "counsellor" ? "/counsellor" : state.role === "admin" ? "/admin" : "/";
@@ -81,6 +85,23 @@ export function Shell({ children }: { children: React.ReactNode }) {
               ))}
             </div>
           </div>
+          {state.role === "counsellor" && (
+            <div className="preview">
+              <p>Mentor desk</p>
+              <div className="switch" role="group" aria-label="Mentor desk">
+                {(["academic", "financial", "transport"] as ExtensionMatter[]).map((desk) => (
+                  <button
+                    key={desk}
+                    type="button"
+                    aria-pressed={state.counsellorDesk === desk}
+                    onClick={() => setCounsellorDesk(desk)}
+                  >
+                    {desk === "financial" ? "Financial" : desk === "transport" ? "Transport" : "Academic"}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           <nav className="nav">
             {state.role === "student" && (
               <>

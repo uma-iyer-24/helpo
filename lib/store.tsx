@@ -9,8 +9,9 @@ import {
   type ReactNode,
 } from "react";
 import { CAP, courseById, formatDate, nowStamp } from "./campus";
+import { assignExtensionDesk, mentorFor } from "./mentors";
 import { normalizeState } from "./normalize";
-import { freshState, type Role, type State } from "./types";
+import { freshState, type ExtensionMatter, type Role, type State } from "./types";
 
 const KEY = "helpo-demo-v2";
 
@@ -20,10 +21,12 @@ type Store = {
   remainingExtensions: number;
   remainingDays: number;
   setRole: (role: Role) => void;
+  setCounsellorDesk: (desk: ExtensionMatter) => void;
   dismissTutorial: () => void;
   replayTutorial: () => void;
   requestExtension: (input: {
     courseId: "os" | "cn";
+    matter: ExtensionMatter;
     letter: string;
     askUntil: string;
   }) => string | null;
@@ -91,9 +94,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       remainingExtensions: CAP - usedExtensions(state),
       remainingDays: CAP - usedDays(state),
       setRole: (role) => setState((s) => ({ ...s, role })),
+      setCounsellorDesk: (desk) => setState((s) => ({ ...s, counsellorDesk: desk })),
       dismissTutorial: () => setState((s) => ({ ...s, tutorialSeen: true })),
       replayTutorial: () => setState((s) => ({ ...s, tutorialSeen: false })),
-      requestExtension: ({ courseId, letter, askUntil }) => {
+      requestExtension: ({ courseId, matter, letter, askUntil }) => {
         let error: string | null = null;
         setState((s) => {
           if (usedExtensions(s) >= CAP) {
@@ -106,6 +110,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             return s;
           }
           const course = courseById(courseId);
+          const route = assignExtensionDesk(matter, text);
+          const mentor = mentorFor(route.assignedDesk);
           return {
             ...s,
             extensions: [
@@ -113,6 +119,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
                 id: uid("ext"),
                 studentId: "ananya",
                 courseId,
+                matter,
+                assignedDesk: route.assignedDesk,
                 letter: text,
                 askUntil,
                 status: "pending_counsellor",
@@ -125,7 +133,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
               {
                 id: uid("led"),
                 at: nowStamp(),
-                text: `Extension requested · ${course.name} · routed to counselling · ${formatDate(course.due)} to ${formatDate(askUntil)}`,
+                text: `Extension requested · ${course.name} · ${mentor.title} · ${formatDate(course.due)} to ${formatDate(askUntil)}`,
               },
               ...s.ledger,
             ],

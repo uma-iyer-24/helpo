@@ -1,23 +1,31 @@
 "use client";
 
 import Link from "next/link";
-import { courseById, formatDate, formatWhen, person } from "@/lib/campus";
+import { courseById, formatDate, formatWhen } from "@/lib/campus";
+import { opaqueCaseRef } from "@/lib/cases";
 import { counsellorQueue } from "@/lib/extensions";
+import { matterLabel, mentorFor } from "@/lib/mentors";
 import { useHelpo } from "@/lib/store";
 import { Page } from "@/components/ui";
 
 export default function CounsellorPage() {
   const { state, attestDay } = useHelpo();
-  const extensionInbox = state.extensions.filter((item) => counsellorQueue(item.status) || item.status === "pending_faculty" || item.status === "recorded");
+  const desk = state.counsellorDesk;
+  const mentor = mentorFor(desk);
+  const extensionInbox = state.extensions.filter(
+    (item) =>
+      item.assignedDesk === desk &&
+      (counsellorQueue(item.status) || item.status === "pending_faculty" || item.status === "recorded"),
+  );
 
   return (
     <Page
-      kicker="Counselling centre"
-      title="Today at the centre."
-      lede="Anonymous extension requests come here first. You approve or decline. Faculty only record what you approved."
+      kicker={mentor.title}
+      title={`${mentor.name}'s inbox.`}
+      lede="Anonymous extension requests routed by topic and letter classification. Mental health days stay anonymous. Names stay off this screen."
     >
       <section>
-        <p className="kicker">Anonymous extensions</p>
+        <p className="kicker">Anonymous extensions · {mentor.detail}</p>
         {extensionInbox.length === 0 ? (
           <p className="note">No extension requests.</p>
         ) : (
@@ -33,7 +41,7 @@ export default function CounsellorPage() {
                     </span>
                   </div>
                   <p style={{ margin: 0 }}>
-                    {formatDate(course.due)} → {formatDate(item.grantedUntil ?? item.askUntil)} · name sealed
+                    {matterLabel(item.matter)} · {formatDate(course.due)} → {formatDate(item.grantedUntil ?? item.askUntil)} · name sealed
                   </p>
                   <p className="muted" style={{ margin: 0 }}>{formatWhen(item.createdAt)}</p>
                 </Link>
@@ -44,7 +52,7 @@ export default function CounsellorPage() {
       </section>
 
       <section style={{ marginTop: 32 }}>
-        <p className="kicker">Mental health days</p>
+        <p className="kicker">Mental health days · anonymous</p>
         {state.bookings.length === 0 ? (
           <p className="note">No mental health day is booked.</p>
         ) : (
@@ -52,10 +60,10 @@ export default function CounsellorPage() {
             {state.bookings.map((item) => (
               <article className="card" key={item.id}>
                 <div className="row">
-                  <h2>{person(item.studentId).name}</h2>
+                  <h2>Anonymous booking · {opaqueCaseRef("MHD", item.id)}</h2>
                   <span className="muted">{item.status === "attested" ? "Attested" : "Attestation pending"}</span>
                 </div>
-                <p style={{ margin: 0 }}>{formatDate(item.date)} · mental health day · conversation optional</p>
+                <p style={{ margin: 0 }}>{formatDate(item.date)} · mental health day · conversation optional · name sealed</p>
                 {item.status === "booked" && (
                   <button className="btn primary" type="button" onClick={() => attestDay(item.id)}>Attest medical leave</button>
                 )}

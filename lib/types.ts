@@ -3,6 +3,9 @@ import { SEED_BOOKINGS, SEED_EXTENSIONS, SEED_LEDGER } from "./seed";
 
 export type Role = "student" | "faculty" | "counsellor" | "admin";
 
+/** Topic the student selects; routes to a mentor desk after letter classification. */
+export type ExtensionMatter = "academic" | "financial" | "transport";
+
 export type ExtensionStatus =
   | "pending_counsellor"
   | "declined"
@@ -13,6 +16,10 @@ export type Extension = {
   id: string;
   studentId: DemoStudentId;
   courseId: "os" | "cn";
+  /** Student-selected topic on the extension form. */
+  matter: ExtensionMatter;
+  /** Mentor desk after Helpo classifies the letter. */
+  assignedDesk: ExtensionMatter;
   letter: string;
   askUntil: string;
   status: ExtensionStatus;
@@ -45,6 +52,8 @@ export type LedgerLine = {
 
 export type State = {
   role: Role;
+  /** Which mentor inbox the counsellor preview is viewing. */
+  counsellorDesk: ExtensionMatter;
   tutorialSeen: boolean;
   handedOver: boolean;
   extensions: Extension[];
@@ -56,6 +65,7 @@ export type State = {
 export function freshState(): State {
   return {
     role: "student",
+    counsellorDesk: "academic",
     tutorialSeen: false,
     handedOver: false,
     bookings: [...SEED_BOOKINGS],

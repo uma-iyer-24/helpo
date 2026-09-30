@@ -50,7 +50,7 @@ export default function AdminCasePage() {
           )}
           {item.kind === "mental_health_day" && (
             <p style={{ margin: 0 }}>
-              The counselling centre see the booking, the room, and attestation. No reason is collected. Medical leave is marked after attestation.
+              The counselling centre see an anonymous booking and attestation queue — no name on the shared screen. No reason is collected. Medical leave reaches faculty only after attestation, without a reason field.
             </p>
           )}
           {item.kind === "handover" && (

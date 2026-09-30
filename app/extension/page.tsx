@@ -3,12 +3,15 @@
 import { useEffect, useState } from "react";
 import { CAP, COURSES, courseById, formatDate, formatWhen } from "@/lib/campus";
 import { extensionStudentLabel } from "@/lib/extensions";
+import { assignExtensionDesk, MATTER_OPTIONS, matterLabel, mentorFor } from "@/lib/mentors";
 import { useHelpo } from "@/lib/store";
+import type { ExtensionMatter } from "@/lib/types";
 import { Page, Witness } from "@/components/ui";
 
 export default function ExtensionPage() {
   const { state, remainingExtensions, requestExtension } = useHelpo();
   const [courseId, setCourseId] = useState<"os" | "cn">("os");
+  const [matter, setMatter] = useState<ExtensionMatter>("academic");
   const [askUntil, setAskUntil] = useState(COURSES[0].askDefault);
   const [letter, setLetter] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -25,6 +28,8 @@ export default function ExtensionPage() {
   const course = courseById(courseId);
   const mine = state.extensions.filter((item) => item.studentId === "ananya");
   const capped = remainingExtensions <= 0;
+  const routePreview = letter.trim() ? assignExtensionDesk(matter, letter) : null;
+  const routedMentor = routePreview ? mentorFor(routePreview.assignedDesk) : mentorFor(matter);
 
   function chooseCourse(id: "os" | "cn") {
     setCourseId(id);
@@ -32,7 +37,7 @@ export default function ExtensionPage() {
   }
 
   function submit() {
-    const result = requestExtension({ courseId, letter, askUntil });
+    const result = requestExtension({ courseId, matter, letter, askUntil });
     if (result === "cap") setError("You have used 3 of 3 extensions this semester. This one cannot be sent. The count resets next semester.");
     else if (result === "empty") setError("Write the request, or bring in the summary from Crashout bot.");
     else {
@@ -73,6 +78,22 @@ export default function ExtensionPage() {
             ))}
           </div>
           <label>
+            What is this about?
+            <select value={matter} onChange={(event) => setMatter(event.target.value as ExtensionMatter)}>
+              {MATTER_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <p className="note" style={{ marginTop: -8 }}>
+            Helpo routes to {routedMentor.title} ({routedMentor.name}).
+            {routePreview?.adjusted && (
+              <> Your letter reads more like {matterLabel(routePreview.assignedDesk).split(" ·")[0]} — we assigned {routedMentor.title}.</>
+            )}
+          </p>
+          <label>
             Move it to
             <input type="date" value={askUntil} min={course.due} onChange={(event) => setAskUntil(event.target.value)} />
           </label>
@@ -106,7 +127,9 @@ export default function ExtensionPage() {
                     <span className="muted">{formatWhen(item.createdAt)}</span>
                   </div>
                   <p className="letter">{item.letter}</p>
-                  <p className="muted">{extensionStudentLabel(item.status)}</p>
+                  <p className="muted">
+                    {matterLabel(item.matter)} · {mentorFor(item.assignedDesk).title} · {extensionStudentLabel(item.status)}
+                  </p>
                   {item.status === "recorded" && <p>Due {formatDate(item.grantedUntil ?? item.askUntil)}.</p>}
                   {item.status === "declined" && <p>{item.declineNote}</p>}
                 </article>

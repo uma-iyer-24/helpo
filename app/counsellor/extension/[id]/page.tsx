@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { courseById, formatDate } from "@/lib/campus";
+import { matterLabel, mentorFor } from "@/lib/mentors";
 import { useHelpo } from "@/lib/store";
 import { Page } from "@/components/ui";
 
@@ -23,13 +24,20 @@ export default function CounsellorExtensionPage() {
   }
 
   const course = courseById(item.courseId);
+  const mentor = mentorFor(item.assignedDesk);
 
   return (
     <Page
       kicker={`${course.name} · anonymous`}
       title={item.status === "pending_counsellor" ? "Read, then approve or decline." : "Decision recorded."}
-      lede="You see the letter. The student stays unnamed. Faculty never decide whether to grant. They only record a counsellor-approved date."
+      lede={`Routed to ${mentor.title} (${mentor.name}). You see the letter. The student stays unnamed. Faculty only record a counsellor-approved date.`}
     >
+      <p className="note">
+        Topic: {matterLabel(item.matter)}
+        {item.assignedDesk !== item.matter && (
+          <> · Helpo reassigned to {mentor.title} based on the letter.</>
+        )}
+      </p>
       <p className="letter">{item.letter}</p>
       <p className="muted">Asked to move {formatDate(course.due)} to {formatDate(item.askUntil)}.</p>
 
